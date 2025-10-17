@@ -38,7 +38,7 @@ export class Dungeon extends Phaser.Scene {
   private playerHealth = 3;
   private playerMaxHealth = 3;
   private attackCooldown = 0;
-  private attackRange = 60;
+  private attackRange = 80;
   private lastHitTime = 0;
   private gameWon = false;
 
@@ -67,11 +67,11 @@ export class Dungeon extends Phaser.Scene {
     const spawn = this.findValidSpawn();
     this.player = this.physics.add
       .sprite(spawn.x, spawn.y, 'knight')
-      .setDisplaySize(this.tileSize * 1.2, this.tileSize * 1.6)
+      .setDisplaySize(this.tileSize * 1.8, this.tileSize * 2.4)
       .setCollideWorldBounds(true);
     
-    (this.player.body as Phaser.Physics.Arcade.Body).setSize(this.tileSize * 0.8, this.tileSize * 0.8);
-    (this.player.body as Phaser.Physics.Arcade.Body).setOffset(this.tileSize * 0.2, this.tileSize * 0.8);
+    (this.player.body as Phaser.Physics.Arcade.Body).setSize(this.tileSize * 1.2, this.tileSize * 1.2);
+    (this.player.body as Phaser.Physics.Arcade.Body).setOffset(this.tileSize * 0.3, this.tileSize * 1.2);
 
     // Collisions
     this.platforms = this.physics.add.staticGroup();
@@ -277,7 +277,7 @@ export class Dungeon extends Phaser.Scene {
         cy * this.tileSize,
         'mob'
       );
-      enemySprite.setDisplaySize(this.tileSize * 1.3, this.tileSize * 1.3);
+      enemySprite.setDisplaySize(this.tileSize * 1.8, this.tileSize * 1.8);
       enemySprite.setBounce(0.1).setCollideWorldBounds(true);
       enemySprite.setVelocityX(Phaser.Math.Between(-80, 80));
 
@@ -294,7 +294,7 @@ export class Dungeon extends Phaser.Scene {
     const bossY = (this.rows - 9) * this.tileSize;
     
     const bossSprite = this.physics.add.image(bossX, bossY, 'boss');
-    bossSprite.setDisplaySize(this.tileSize * 2.2, this.tileSize * 2.2);
+    bossSprite.setDisplaySize(this.tileSize * 3.0, this.tileSize * 3.0);
     bossSprite.setCollideWorldBounds(true);
     
     this.physics.add.collider(bossSprite, this.platforms);
@@ -461,7 +461,7 @@ export class Dungeon extends Phaser.Scene {
     this.enemies.forEach(enemy => {
       if (enemy.health > 0) {
         const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, enemy.sprite.x, enemy.sprite.y);
-        if (dist < this.tileSize * 1.0) {
+        if (dist < this.tileSize * 1.5) {
           this.takeDamage();
           this.lastHitTime = now;
         }
@@ -476,7 +476,7 @@ export class Dungeon extends Phaser.Scene {
     if (now - this.lastHitTime < 1000) return;
 
     const dist = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.boss.sprite.x, this.boss.sprite.y);
-    if (dist < this.tileSize * 1.6) {
+    if (dist < this.tileSize * 2.2) {
       this.takeDamage();
       this.lastHitTime = now;
     }
