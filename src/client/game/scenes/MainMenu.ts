@@ -27,7 +27,7 @@ export class MainMenu extends Scene {
     this.scale.on('resize', () => this.refreshLayout());
 
     this.input.once('pointerdown', () => {
-      this.scene.start('Game');
+      this.scene.start('Dungeon');
     });
   }
 

@@ -1,5 +1,5 @@
 import express from 'express';
-import { InitResponse, IncrementResponse, DecrementResponse } from '../shared/types/api';
+import { InitResponse, IncrementResponse, DecrementResponse, BossStatusResponse, BossAttackResponse } from '../shared/types/api';
 import { redis, createServer, context } from '@devvit/web/server';
 import { createPost } from './core/post';
 
@@ -118,6 +118,49 @@ router.post('/internal/menu/post-create', async (_req, res): Promise<void> => {
     });
   }
 });
+
+// --- Community Boss Endpoints ---
+const BOSS_ID = 'global-boss-1';
+const BOSS_HP_KEY = `boss:${BOSS_ID}:hp`;
+const BOSS_MAX_HP = 1000;
+
+router.get<{}, BossStatusResponse | { status: string; message: string }>(
+  '/api/boss/status',
+  async (_req, res): Promise<void> => {
+    try {
+      const hpRaw = await redis.get(BOSS_HP_KEY);
+      const hp = hpRaw ? parseInt(hpRaw) : BOSS_MAX_HP;
+      if (!hpRaw) {
+        await redis.set(BOSS_HP_KEY, `${BOSS_MAX_HP}`);
+      }
+      res.json({ type: 'boss_status', bossId: BOSS_ID, hp, maxHp: BOSS_MAX_HP });
+    } catch (error) {
+      console.error('Boss status error', error);
+      res.status(400).json({ status: 'error', message: 'Failed to fetch boss status' });
+    }
+  }
+);
+
+router.post<{}, BossAttackResponse | { status: string; message: string }, { amount?: number }>(
+  '/api/boss/attack',
+  async (req, res): Promise<void> => {
+    try {
+      const amount = Math.max(1, Math.min(25, Number(req.body?.amount ?? 10)));
+      let hpRaw = await redis.get(BOSS_HP_KEY);
+      let hp = hpRaw ? parseInt(hpRaw) : BOSS_MAX_HP;
+      if (!hpRaw) {
+        await redis.set(BOSS_HP_KEY, `${BOSS_MAX_HP}`);
+        hp = BOSS_MAX_HP;
+      }
+      const newHp = Math.max(0, hp - amount);
+      await redis.set(BOSS_HP_KEY, `${newHp}`);
+      res.json({ type: 'boss_attack', bossId: BOSS_ID, hp: newHp, maxHp: BOSS_MAX_HP, amount });
+    } catch (error) {
+      console.error('Boss attack error', error);
+      res.status(400).json({ status: 'error', message: 'Failed to apply boss attack' });
+    }
+  }
+);
 
 // Use router middleware
 app.use(router);

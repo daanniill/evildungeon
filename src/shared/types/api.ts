@@ -15,3 +15,18 @@ export type DecrementResponse = {
   postId: string;
   count: number;
 };
+
+export type BossStatusResponse = {
+  type: 'boss_status';
+  bossId: string;
+  hp: number;
+  maxHp: number;
+};
+
+export type BossAttackResponse = {
+  type: 'boss_attack';
+  bossId: string;
+  hp: number;
+  maxHp: number;
+  amount: number;
+};
