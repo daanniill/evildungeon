@@ -70,8 +70,8 @@ export class Dungeon extends Phaser.Scene {
       .setDisplaySize(this.tileSize * 1.2, this.tileSize * 1.6)
       .setCollideWorldBounds(true);
     
-    (this.player.body as Phaser.Physics.Arcade.Body).setSize(this.tileSize * 0.8, this.tileSize * 1.2);
-    (this.player.body as Phaser.Physics.Arcade.Body).setOffset(this.tileSize * 0.2, this.tileSize * 0.2);
+    (this.player.body as Phaser.Physics.Arcade.Body).setSize(this.tileSize * 0.8, this.tileSize * 0.8);
+    (this.player.body as Phaser.Physics.Arcade.Body).setOffset(this.tileSize * 0.2, this.tileSize * 0.8);
 
     // Collisions
     this.platforms = this.physics.add.staticGroup();
@@ -82,10 +82,26 @@ export class Dungeon extends Phaser.Scene {
     this.spawnEnemies(8);
     this.enemies.forEach(enemy => {
       this.physics.add.collider(enemy.sprite, this.platforms);
+      this.physics.add.collider(enemy.sprite, this.player);
     });
+
+    // Enemy-to-enemy collisions
+    for (let i = 0; i < this.enemies.length; i++) {
+      for (let j = i + 1; j < this.enemies.length; j++) {
+        const enemy1 = this.enemies[i];
+        const enemy2 = this.enemies[j];
+        if (enemy1 && enemy2) {
+          this.physics.add.collider(enemy1.sprite, enemy2.sprite);
+        }
+      }
+    }
 
     // Boss at the end
     this.spawnBoss();
+    this.physics.add.collider(this.boss.sprite, this.player);
+    this.enemies.forEach(enemy => {
+      this.physics.add.collider(this.boss.sprite, enemy.sprite);
+    });
 
     // Input
     this.cursors = this.input.keyboard!.createCursorKeys();
@@ -159,10 +175,10 @@ export class Dungeon extends Phaser.Scene {
       this.attackCooldown = 500; // 500ms cooldown
     }
 
-    // Check enemy collisions for damage
+    // Check enemy collisions for damage (using overlap instead of collision)
     this.checkEnemyCollisions();
 
-    // Check boss collision
+    // Check boss collision (using overlap instead of collision)
     this.checkBossCollision();
 
     // Check win condition
@@ -225,9 +241,10 @@ export class Dungeon extends Phaser.Scene {
           const block = this.platforms.create(
             x * this.tileSize + this.tileSize / 2,
             y * this.tileSize + this.tileSize / 2,
-            undefined as unknown as string
+            'stone'
           );
-          block.setDisplaySize(this.tileSize, this.tileSize);
+          block.setDisplaySize(this.tileSize + 1, this.tileSize + 1);
+          block.setVisible(false); // Hide the physics body visual
           block.refreshBody();
         }
       }
